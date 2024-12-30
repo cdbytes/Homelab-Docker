@@ -1,0 +1,64 @@
+services:
+  crafty:
+    container_name: crafty_container
+    image: registry.gitlab.com/crafty-controller/crafty-4:latest
+    restart: always
+    environment:
+        - TZ=Etc/UTC
+    ports:
+        - "10001:8443" # HTTPS
+        - "10002:8123" # DYNMAP
+        # - "19132:19132/udp" # BEDROCK
+        - "25565-25570:25565-25570" # MC SERV PORT RANGE
+    volumes:
+        - backups:/crafty/backups
+        - logs:/crafty/logs
+        - servers:/crafty/servers
+        - config:/crafty/app/config
+        - import:/crafty/import
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == swarm-pve2-1
+
+    
+  database:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: # Removed
+      MYSQL_DATABASE: minecraft
+    volumes:
+        - database:/var/lib/mysql
+
+volumes:
+  backups:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.20.1.1,nolock,soft,rw"
+      device: ":/mnt/Main/Docker/crafty/backups"
+  logs:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.20.1.1,nolock,soft,rw"
+      device: ":/mnt/Main/Docker/crafty/logs"
+  servers:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.20.1.1,nolock,soft,rw"
+      device: ":/mnt/Main/Docker/crafty/servers"
+  config:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.20.1.1,nolock,soft,rw"
+      device: ":/mnt/Main/Docker/crafty/config"
+  import:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.20.1.1,nolock,soft,rw"
+      device: ":/mnt/Main/Docker/crafty/import"
+  database:
+    driver_opts:
+      type: "nfs4"
+      o: "addr=10.20.1.1,nolock,soft,rw"
+      device: ":/mnt/Main/Docker/crafty/db"
